@@ -5,8 +5,9 @@ import (
 	// "encoding/json"
 	"fmt"
 	// "github.com/ajstarks/svgo"
-	"sync"
-	// "time"
+	// "github.com/paddie/statedb"
+	// "sync"
+	"time"
 )
 
 // The pond holds all the information about a part of
@@ -16,16 +17,18 @@ import (
 // - Transfer: fish in transfer have moved outside the bounds
 //   of the pond during this epoch
 type Pond struct {
-	Bound        *Bound         // 2 x Point
-	Fish         map[int]*Fish  // doubly linked list
-	fish_barrier sync.WaitGroup // barrier that pond waits on
-
-	// rw_lock      sync.RWMutex   // global lock on the pond
-	// pond_cond    sync.Cond      // conditional wait
-	// sync_lock    sync.Mutex     // the lock used by the sync.Cond
+	Bound      *Bound        // 2 x Point
+	Fish       map[int]*Fish // doubly linked list
+	quit       chan time.Time
+	jobs, done chan *Fish
 }
 
 func NewPond(bound *Bound, fish []*Fish) (*Pond, error) {
+
+	// db := statedb.NewStateDB("", "tmp", "friday")
+
+	// if db.rest
+
 	pond := &Pond{
 		Bound: bound,
 		Fish:  make(map[int]*Fish),
@@ -41,31 +44,29 @@ func NewPond(bound *Bound, fish []*Fish) (*Pond, error) {
 	return pond, nil
 }
 
-// func (p *Pond) FishCompletedStep() {
-// 	p.fish_barrier.Done()
-// }
-
 func (p *Pond) Simulate(n, procs int) {
 
 	if len(p.Fish) == 0 || n == 0 || procs == 0 {
 		return
 	}
 	// channel for synchonising fish completion
-	done := make(chan *Fish, 1000)
-	jobs := make(chan *Fish, 1000)
-	quit := make(chan bool, procs)
+	p.done = make(chan *Fish, 1000)
+	p.jobs = make(chan *Fish, 1000)
+	p.quit = make(chan time.Time, procs)
+
 	for i := 0; i < procs; i++ {
-		go Worker(p, jobs, done, quit)
+		go Worker(p)
 	}
 
 	sync := make(chan bool, 1)
 
 	// Generator routine
-	// - sends out a load of jobs, and waits until all results have been processed before sending out a new batch
+	// 1. sends out a load of jobs and..
+	// 2. waits on the sync thread until the next tick is signalled.
 	go func() {
 		for i := 0; i < n; i++ {
 			for _, f := range p.Fish {
-				jobs <- f
+				p.jobs <- f
 			}
 			_ = <-sync
 		}
@@ -75,7 +76,7 @@ func (p *Pond) Simulate(n, procs int) {
 	for i := 0; i < n; i++ {
 		// receive results
 		for m := 0; m < len(p.Fish); m++ {
-			_ = <-done
+			_ = <-p.done
 			// fmt.Printf("fish %d was processed..\n", f.ID)
 		}
 
@@ -90,21 +91,20 @@ func (p *Pond) Simulate(n, procs int) {
 		sync <- true
 	}
 
-	close(jobs)
+	close(p.jobs)
 
 	for i := 0; i < procs; i++ {
-		_ = <-quit
+		_ = <-p.quit
 	}
 	fmt.Println("All workers has shut down")
-
 }
 
-func Worker(p *Pond, job <-chan *Fish, done chan<- *Fish, quit chan<- bool) {
-	for f := range job {
+func Worker(p *Pond) {
+	for f := range p.jobs {
 		f.Step(p)
 		// i++
-		done <- f
+		p.done <- f
 	}
 
-	quit <- true
+	p.quit <- time.Now()
 }
