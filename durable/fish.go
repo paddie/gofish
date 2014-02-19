@@ -60,6 +60,23 @@ type Fish struct {
 	awake    bool
 }
 
+type m struct {
+	Informed *bool
+	V, G     *Vector2D
+	S        *float64
+	C        *Point
+}
+
+func (f *Fish) Mutable() *m {
+	return &m{
+		Informed: &f.Informed,
+		V:        &f.V,
+		G:        &f.G,
+		S:        &f.S,
+		C:        &f.C,
+	}
+}
+
 func (f *Fish) Pos() *Point {
 	return &f.C
 }

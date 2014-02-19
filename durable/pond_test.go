@@ -16,7 +16,7 @@ func init() {
 
 	runtime.GOMAXPROCS(2)
 
-	count := 10
+	count := 1000
 	pct := 10.0
 	factor := int(float64(count) / pct)
 	speed := 0.3

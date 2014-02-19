@@ -41,12 +41,15 @@ func (p *Pond) Restore() error {
 
 	fish := new(Fish)
 	for {
-		if _, ok := iter.Next(fish, &fish.C); !ok {
+		if _, ok := iter.Next(fish, fish.Mutable()); !ok {
 			break
 		}
 		p.fish[fish.ID] = fish
 		fish = new(Fish)
 	}
+
+	fmt.Println(*p.fish[1])
+
 	p.restored = true
 
 	return nil
@@ -63,8 +66,13 @@ func (p *Pond) InitPond(bound *Bound, fish []*Fish) {
 	// insert all fish into the map
 	for _, f := range fish {
 		// start fish processes here..
-		p.db.Insert(f, &f.C)
+		p.db.Insert(f, f.Mutable())
 		p.fish[f.ID] = f
+	}
+
+	for _, f := range p.fish {
+		fmt.Println(*f)
+		break
 	}
 }
 
