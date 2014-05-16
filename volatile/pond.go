@@ -1,4 +1,4 @@
-package gofish
+package main
 
 import (
 	// "container/list"
@@ -44,17 +44,18 @@ func NewPond(bound *Bound, fish []*Fish) (*Pond, error) {
 	return pond, nil
 }
 
-func (p *Pond) Simulate(n, procs int) {
+func (p *Pond) Simulate(n, workers int) {
+	start := time.Now()
 
-	if len(p.Fish) == 0 || n == 0 || procs == 0 {
+	if len(p.Fish) == 0 || n == 0 || workers == 0 {
 		return
 	}
 	// channel for synchonising fish completion
 	p.done = make(chan *Fish, 1000)
 	p.jobs = make(chan *Fish, 1000)
-	p.quit = make(chan time.Time, procs)
+	p.quit = make(chan time.Time, workers)
 
-	for i := 0; i < procs; i++ {
+	for i := 0; i < workers; i++ {
 		go Worker(p)
 	}
 
@@ -93,10 +94,11 @@ func (p *Pond) Simulate(n, procs int) {
 
 	close(p.jobs)
 
-	for i := 0; i < procs; i++ {
+	for i := 0; i < workers; i++ {
 		_ = <-p.quit
 	}
 	fmt.Println("All workers has shut down")
+	fmt.Println(float64(time.Now().Sub(start).Nanoseconds()) / 1000000.0)
 }
 
 func Worker(p *Pond) {

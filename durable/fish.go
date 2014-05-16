@@ -1,4 +1,4 @@
-package gofish
+package main
 
 import (
 	// "fmt"
@@ -58,6 +58,8 @@ type Fish struct {
 	dirty    bool     // true if C has not been updated after a step
 	action   int
 	awake    bool
+	I_buff   []byte
+	m_buff   []byte
 }
 
 type m struct {
@@ -65,15 +67,17 @@ type m struct {
 	V, G     *Vector2D
 	S        *float64
 	C        *Point
+	Buff     *[]byte
 }
 
-func (f *Fish) Mutable() *m {
+func (f *Fish) Mutable() interface{} {
 	return &m{
 		Informed: &f.Informed,
 		V:        &f.V,
 		G:        &f.G,
 		S:        &f.S,
 		C:        &f.C,
+		Buff:     &f.m_buff,
 	}
 }
 
@@ -85,7 +89,7 @@ func (f1 *Fish) Diff(f2 *Fish) Vector2D {
 	return f1.C.Diff(f2.C)
 }
 
-func NewInformedFish(id int, pos Point, dir Vector2D, info Vector2D, speed float64) *Fish {
+func NewInformedFish(id int, pos Point, dir Vector2D, info Vector2D, speed float64, i, m int) *Fish {
 
 	if dir.IsZero() || info.IsZero() {
 		panic("Direction vector must not be {0.0, 0.0}")
@@ -93,7 +97,7 @@ func NewInformedFish(id int, pos Point, dir Vector2D, info Vector2D, speed float
 
 	v_norm := dir.Normalize()
 
-	return &Fish{
+	f := &Fish{
 		ID:       id,
 		C:        pos,
 		V:        v_norm,
@@ -102,9 +106,19 @@ func NewInformedFish(id int, pos Point, dir Vector2D, info Vector2D, speed float
 		S:        speed,
 		Informed: true,
 	}
+
+	if i > 0 {
+		f.I_buff = make([]byte, i)
+	}
+	if m > 0 {
+		f.m_buff = make([]byte, m)
+
+	}
+
+	return f
 }
 
-func NewFish(id int, pos Point, dir Vector2D, speed float64) *Fish {
+func NewFish(id int, pos Point, dir Vector2D, speed float64, i, m int) *Fish {
 
 	if dir.IsZero() {
 		panic("Direction vector must not be {0.0, 0.0}")
@@ -112,7 +126,7 @@ func NewFish(id int, pos Point, dir Vector2D, speed float64) *Fish {
 
 	v_norm := dir.Normalize()
 
-	return &Fish{
+	f := &Fish{
 		ID:       id,
 		C:        pos,
 		V:        v_norm,
@@ -121,6 +135,15 @@ func NewFish(id int, pos Point, dir Vector2D, speed float64) *Fish {
 		S:        speed,
 		Informed: false,
 	}
+
+	if i > 0 {
+		f.I_buff = make([]byte, i)
+	}
+	if m > 0 {
+		f.m_buff = make([]byte, m)
+	}
+
+	return f
 }
 
 func (f1 *Fish) Avoid(pond *Pond) (Vector2D, bool) {

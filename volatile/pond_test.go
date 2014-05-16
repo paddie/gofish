@@ -1,4 +1,4 @@
-package gofish
+package main
 
 import (
 	// "github.com/paddie/fish"
