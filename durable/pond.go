@@ -34,15 +34,11 @@ func (p *Pond) Mutable() interface{} {
 }
 
 func (p *Pond) Restore() error {
-	fmt.Println("restoring..")
 	if err := p.db.RestoreSingle(p); err != nil {
 		panic(err)
 	}
 
 	t := statedb.ReflectTypeM(Fish{})
-	// if err != nil {
-	// 	panic(err)
-	// }
 	iter, err := p.db.RestoreIter(t)
 	if err != nil {
 		return err
@@ -56,9 +52,6 @@ func (p *Pond) Restore() error {
 		p.fish[fish.ID] = fish
 		fish = new(Fish)
 	}
-
-	// fmt.Println(*p.fish[1])
-
 	p.restored = true
 
 	return nil
@@ -78,14 +71,9 @@ func (p *Pond) InitPond(bound *Bound, fish []*Fish) {
 		p.db.Insert(f)
 		p.fish[f.ID] = f
 	}
-
-	// for _, f := range p.fish {
-	// 	// fmt.Println(*f)
-	// 	break
-	// }
 }
 
-func NewPond(bound *Bound, fish []*Fish, steps int) (*Pond, error) {
+func NewPond(bound *Bound, fish []*Fish, steps int, statPath string) (*Pond, error) {
 
 	fs, err := fs.NewFS_OS("test")
 	if err != nil {
@@ -98,7 +86,7 @@ func NewPond(bound *Bound, fish []*Fish, steps int) (*Pond, error) {
 	// sends a pre-defined list of price-values to the framework
 	mon := statedb.NewTestMonitor(time.Second * 5)
 
-	db, restored, err := statedb.NewStateDB(fs, mdl, mon, 2.0)
+	db, restored, err := statedb.NewStateDB(fs, mdl, mon, 2.0, statPath)
 	if err != nil {
 		panic(err)
 	}
@@ -127,7 +115,7 @@ func NewPond(bound *Bound, fish []*Fish, steps int) (*Pond, error) {
 
 func (p *Pond) Simulate(procs, freq int) {
 
-	if len(p.fish) == 0 || n == 0 || procs == 0 {
+	if len(p.fish) == 0 || procs == 0 {
 		return
 	}
 	// channel for synchonising fish completion

@@ -20,16 +20,17 @@ var (
 	steps    int
 	workers  int
 	cpu      int
+	prefix   string
 )
 
 func init() {
-	flag.IntVar(&imm_size, "i", 0, "define the size in bytes of the immutable part")
-	flag.IntVar(&mut_size, "m", 0, "define the size in bytes of the immutable part")
-	flag.IntVar(&freq, "f", 50, "define sync frequency")
+	flag.StringVar(&prefix, "p", "", "stat prefix")
+	flag.IntVar(&imm_size, "i", 0, "immurable size in bytes")
+	flag.IntVar(&mut_size, "m", 0, "mutable size in bytes")
+	flag.IntVar(&freq, "f", 50, "sync frequency")
 	flag.IntVar(&steps, "s", 1000, "number of simulation steps")
 	flag.IntVar(&workers, "w", 10, "number of workers")
 	flag.IntVar(&cpu, "cpu", 1, "GOMAXPROCS")
-
 }
 
 func RandomPoints(c Point, maxRadius float64, count int) []Point {
@@ -64,7 +65,7 @@ func main() {
 
 	fmt.Println("steps = ", steps)
 	fmt.Println("workers = ", workers)
-	fmt.Println("SyncFreqency = ", freq)
+	fmt.Println("frequency = ", freq)
 
 	count := 1000
 	pct := 10.0
@@ -89,9 +90,15 @@ func main() {
 		}
 		fish = append(fish, tmp)
 	}
+	var path string
+	if prefix == "" {
+		path = fmt.Sprintf("f%d-s%d-cpu%d", freq, steps, cpu)
+	} else {
+		path = fmt.Sprintf("%s-f%d-s%d-cpu%d", prefix, freq, steps, cpu)
+	}
 
 	bound, _ := NewBound(Point{0, 0}, Point{1000, 1000})
-	pond, _ = NewPond(bound, fish, steps)
+	pond, _ = NewPond(bound, fish, steps, path)
 
 	pond.Simulate(workers, freq)
 }
