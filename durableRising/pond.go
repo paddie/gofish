@@ -8,8 +8,6 @@ import (
 	// "github.com/ajstarks/svgo"
 	"github.com/paddie/statedb"
 	"github.com/paddie/statedb/fs"
-	"github.com/paddie/statedb/monitor"
-	"github.com/paddie/statedb/schedular"
 	// "sync"
 	"math"
 	"time"
@@ -45,9 +43,9 @@ func NewPond(bound *Bound, fish []*Fish, steps int, statPath string) (*Pond, err
 
 	// signals a checkpoint every time the price goes up
 	// - a checkpoint is signalled until the checkpoint is taken
-	mdl := schedular.NewAlways()
+	mdl := statedb.NewRisingEdge()
 	// sends a pre-defined list of price-values to the framework
-	mon := monitor.NewTestMonitor(time.Second * 5)
+	mon := statedb.NewRisingMonitor(time.Millisecond * 100)
 
 	db, restored, err := statedb.NewStateDB(fs, mdl, mon, 2.0, statPath)
 	if err != nil {
@@ -85,11 +83,15 @@ func (p *Pond) Restore() error {
 	if err != nil {
 		return err
 	}
+
 	sum := 0
 	fish := new(Fish)
 	for {
 		if _, ok := iter.Next(fish); !ok {
 			break
+		}
+		if fish.ID != fish.val {
+			return fmt.Errorf("ID %d != %d id (imm != mut)", fish.ID, fish.val)
 		}
 		sum += fish.val
 		p.fish[fish.ID] = fish
@@ -172,19 +174,6 @@ func (p *Pond) Simulate(procs, freq int) {
 			f.UpdatePosition()
 		}
 
-		// if p.I == 500 && p.restored == false {
-		// 	fmt.Print("Exit(1)\n")
-		// 	os.Exit(1)
-		// }
-
-		// if i == 1 {
-		// 	fmt.Println("full")
-		// 	fmt.Println(p.db.FullCheckpoint())
-		// } else {
-		// 	fmt.Println("delta cpt")
-		// 	fmt.Println(p.db.DeltaCheckpoint())
-		// }
-		// p.db.Sync()
 		if p.I%freq == 0 {
 			if err := p.db.Sync(); err != nil {
 				panic(err)
