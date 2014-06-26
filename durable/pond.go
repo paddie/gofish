@@ -145,6 +145,7 @@ func (p *Pond) Simulate(freq int) {
 			}
 		}
 	}
-	p.db.FinalCommit()
+	p.db.Quit()
+
 	fmt.Println("Simulation completed.")
 }
