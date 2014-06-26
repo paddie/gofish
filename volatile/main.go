@@ -27,7 +27,6 @@ func init() {
 	// flag.IntVar(&mut_size, "m", 0, "define the size in bytes of the immutable part")
 	// flag.IntVar(&freq, "f", 50, "define sync frequency")
 	flag.IntVar(&steps, "s", 1000, "number of simulation steps")
-	flag.IntVar(&workers, "w", 10, "number of workers")
 	flag.IntVar(&cpu, "cpu", 1, "GOMAXPROCS")
 
 }
@@ -63,7 +62,7 @@ func main() {
 	runtime.GOMAXPROCS(cpu)
 
 	fmt.Println("steps = ", steps)
-	fmt.Println("workers = ", workers)
+	// fmt.Println("workers = ", workers)
 	// fmt.Println("SyncFreqency = ", freq)
 
 	count := 1000
@@ -93,5 +92,5 @@ func main() {
 	bound, _ := NewBound(Point{0, 0}, Point{1000, 1000})
 	pond, _ = NewPond(bound, fish)
 
-	pond.Simulate(steps, workers)
+	pond.Simulate(steps)
 }

@@ -29,7 +29,6 @@ func init() {
 	flag.IntVar(&mut_size, "m", 0, "mutable size in bytes")
 	flag.IntVar(&freq, "f", 50, "sync frequency")
 	flag.IntVar(&steps, "s", 1000, "number of simulation steps")
-	flag.IntVar(&workers, "w", 10, "number of workers")
 	flag.IntVar(&cpu, "cpu", 1, "GOMAXPROCS")
 }
 
@@ -37,6 +36,7 @@ func RandomPoints(c Point, maxRadius float64, count int) []Point {
 	if count <= 0 {
 		return nil
 	}
+
 	points := make([]Point, 0, count)
 	var u, v float64
 
@@ -64,7 +64,6 @@ func main() {
 	runtime.GOMAXPROCS(cpu)
 
 	fmt.Println("steps = ", steps)
-	fmt.Println("workers = ", workers)
 	fmt.Println("frequency = ", freq)
 
 	count := 1000
@@ -100,5 +99,5 @@ func main() {
 	bound, _ := NewBound(Point{0, 0}, Point{1000, 1000})
 	pond, _ = NewPond(bound, fish, steps, path)
 
-	pond.Simulate(workers, freq)
+	pond.Simulate(freq)
 }
