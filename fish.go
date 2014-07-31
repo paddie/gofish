@@ -199,12 +199,12 @@ func (f *Fish) Step(pond *Pond) {
 
 	qd, avoided := f.Avoid(pond)
 
-	// attract if we're not avoiding
+	// attract if we're not avoiding any other fish
 	if !avoided {
-		// fmt.Printf("f%d: didn't avoid anyone, attracting!\n", f.ID)
 		qd = f.Attract(pond)
 	}
 
+	// update the direction based on qd vector.
 	if qd.NotZero() {
 		qd = qd.Normalize()
 		if f.Informed {
@@ -212,6 +212,7 @@ func (f *Fish) Step(pond *Pond) {
 			qd = qd.Normalize()
 		}
 	} else {
+		// if the vector is invalid, update with f.V (birthing direction)
 		qd = f.V
 	}
 
@@ -242,7 +243,7 @@ func (f *Fish) Step(pond *Pond) {
 	// all the meta data updates
 	// update step count/iteration id
 	f.N_step++
-	// mark fish as dirty
+	// mark fish as dirty - needs to update
 	f.dirty = true
 }
 
