@@ -10,6 +10,6 @@ The package was used to stress-test a checkpointing system, and the interaction 
 2. With every step of the simulation, every fish is attracted to fish that are within a radius RHO (horizon, sight) and..
 3. repelled by every fish within a radius ALPHA (personal-sphere, small-radius).
 
-If a certain boundary number of _informed_ fish are introduced into the school (plural of fish, like a murder of crows etc.), the entire school will start moving in the particular direction relative to the average speed of each fish.
+If a certain boundary number of informed fish are introduced into the school (plural of fish, like a murder of crows etc.), the entire school will start to converge on a specific direction, a sort of fuzzy average of all the informed fish's direction vector.
 
 [1] Couzin, Iain D., et al. "Effective leadership and decision-making in animal groups on the move." Nature 433.7025 (2005): 513-516.
